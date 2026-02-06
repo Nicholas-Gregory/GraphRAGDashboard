@@ -1,5 +1,5 @@
 {
-  "name": "client",
+  "name": "@graphragdashboard/client",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -12,15 +12,20 @@
   "license": "ISC",
   "packageManager": "pnpm@10.14.0",
   "dependencies": {
-    "concurrently": "catalog:",
-    "esbuild": "catalog:",
+    "@graphragdashboard/server": "workspace:*",
+    "@tanstack/react-query": "^5.90.20",
+    "@trpc/client": "^11.9.0",
+    "@trpc/react-query": "^11.9.0",
+    "@trpc/server": "catalog:",
     "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "tsx": "catalog:",
-    "typescript": "catalog:"
+    "react-dom": "^19.2.4"
   },
   "devDependencies": {
     "@types/react": "^19.2.13",
-    "@types/react-dom": "^19.2.3"
+    "@types/react-dom": "^19.2.3",
+    "concurrently": "catalog:",
+    "esbuild": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
   }
 }

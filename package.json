@@ -15,5 +15,8 @@
     "esbuild": "catalog:",
     "tsx": "catalog:",
     "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@trpc/server": "catalog:"
   }
 }

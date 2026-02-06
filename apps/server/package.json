@@ -1,0 +1,25 @@
+{
+  "name": "@graphragdashboard/server",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "concurrently \"tsc --noEmit --watch --preserveWatchOutput --incremental\" \"esbuild ./src/server.ts --bundle --outdir=dist --watch --platform=node\" \"nodemon dist/server.js\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.14.0",
+  "devDependencies": {
+    "concurrently": "catalog:",
+    "esbuild": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:"
+  },
+  "dependencies": {
+    "@trpc/server": "catalog:",
+    "cors": "^2.8.6",
+    "express": "^5.2.1"
+  }
+}
