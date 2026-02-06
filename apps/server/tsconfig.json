@@ -1,0 +1,7 @@
+{
+  "compilerOptions": {
+    "skipLibCheck": true,
+    "lib": ["ES2015", "DOM"],
+    "esModuleInterop": true
+  }
+}
