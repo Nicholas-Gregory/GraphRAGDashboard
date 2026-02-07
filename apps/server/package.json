@@ -18,7 +18,9 @@
     "typescript": "catalog:"
   },
   "dependencies": {
+    "@graphragdashboard/packages": "workspace:*",
     "@trpc/server": "catalog:",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "neode": "^0.4.9"
