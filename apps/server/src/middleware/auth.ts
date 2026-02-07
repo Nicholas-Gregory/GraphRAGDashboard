@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { publicProcedure } from "../trpc";
 
-export const authedProcedure = publicProcedure.use((opts: any) => {
+export const auth = publicProcedure.use((opts: any) => {
   const user = opts.ctx.user;
 
   if (!user) {

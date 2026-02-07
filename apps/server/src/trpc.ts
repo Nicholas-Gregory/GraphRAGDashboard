@@ -1,14 +1,30 @@
 import { initTRPC } from "@trpc/server";
+import { CreateNextContextOptions } from "@trpc/server/adapters/next";
+import jwt from "jsonwebtoken";
+import { db } from "./config";
+import { signUp } from "./procedures/auth";
 
-const t = initTRPC.create();
+export const createContext = ({ req }: CreateNextContextOptions) => {
+  const header = req.headers.authorization;
+  const context = { db };
 
-export const createContext = () => ({});
+  if (header?.startsWith('Bearer ')) {
+    const token = header.split(' ')[1];
+
+    try {
+      const user = jwt.verify(token, process.env.JWT_SECRET);
+
+      return { ...context, user };
+    } catch {
+      return context;
+    }
+  }
+
+  return context;
+};
+
+type Context = Awaited<ReturnType<typeof createContext>>
+
+export const t = initTRPC.context<Context>().create();
 
 export const publicProcedure = t.procedure;
-
-export const appRouter = t.router({
-  ping: publicProcedure
-  .query(() => "pong"),
-});
-
-export type AppRouter = typeof appRouter;

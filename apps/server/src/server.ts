@@ -1,6 +1,6 @@
 import express from 'express';
 import * as trpcExpress from '@trpc/server/adapters/express';
-import { appRouter } from './trpc';
+import { appRouter } from './procedures/router';
 import { createContext } from './trpc';
 import cors from 'cors';
 import { db } from './config'; 
