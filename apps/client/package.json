@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"tsc --noEmit --watch --preserveWatchOutput --incremental\" \"esbuild ./src/main.tsx --bundle --outdir=dist --watch --servedir=dist\" \"esbuild --bundle ./src/style.css --outfile=./dist/style.css --watch\" \"npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch\""
+    "dev": "concurrently \"tsc --noEmit --watch --preserveWatchOutput --incremental\" \"node ./esbuild.config.mjs\" \"tsr watch\" \"npx @tailwindcss/cli -i ./src/input.css -o ./dist/output.css --watch\""
   },
   "keywords": [],
   "author": "",
@@ -13,7 +13,9 @@
   "packageManager": "pnpm@10.14.0",
   "dependencies": {
     "@graphragdashboard/server": "workspace:*",
+    "@headlessui/react": "^2.2.9",
     "@tanstack/react-query": "^5.90.20",
+    "@tanstack/react-router": "^1.159.3",
     "@trpc/client": "^11.9.0",
     "@trpc/react-query": "^11.9.0",
     "@trpc/server": "catalog:",
@@ -22,6 +24,8 @@
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.18",
+    "@tanstack/router-cli": "^1.158.4",
+    "@tanstack/router-plugin": "^1.159.3",
     "@types/react": "^19.2.13",
     "@types/react-dom": "^19.2.3",
     "concurrently": "catalog:",

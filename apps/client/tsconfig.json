@@ -4,5 +4,6 @@
     "skipLibCheck": true,
     "jsx": "preserve",
     "esModuleInterop": true,
+    "lib": ["ES2017", "DOM"],
   }
 }
