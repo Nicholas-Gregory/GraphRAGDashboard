@@ -5,20 +5,17 @@ import { httpBatchLink } from '@trpc/client';
 import { trpc } from './utils/trpc';
 import { routeTree } from './routeTree.gen';
 import { createRouter, Router, RouterProvider } from '@tanstack/react-router';
+import { trpcClient, queryClient } from './utils/trpc';
 
-const queryClient = new QueryClient();
-
-const trpcClient = trpc.createClient({
-  links: [
-    httpBatchLink({
-      url: 'http://localhost:4000/trpc',
-    }),
-  ],
-});
 
 new EventSource('/esbuild').addEventListener('change', () => location.reload());
 
-const router = createRouter({ routeTree });
+const router = createRouter({ 
+  routeTree,
+  context: {
+    queryClient
+  }
+});
 
 declare module '@tanstack/react-router' {
   interface Register {
