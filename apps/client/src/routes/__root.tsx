@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Tab, TabGroup, TabList } from '@headlessui/react';
 import { User } from '../../../../packages/schemas/user';
 import { QueryClient } from '@tanstack/react-query';
@@ -19,6 +19,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const { data: user } = trpc.getLoggedInUser.useQuery();
     const navigate = useNavigate();
 
+    useEffect(() => {
+      setSelectedTab(tabMap[pathSegment] ?? 0);
+    }, [pathSegment]);
+
     const onTabChange = (index: number) => {
       if (index === 0) navigate({ to: '/home' });
 
@@ -28,16 +32,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       } else {
         if (index === 1) navigate({ to: '/auth' });
       }
-
-      setSelectedTab(index);
     }
 
     return (
-      <>
+      <div className="p-2 flex flex-col gap-5">
         <TabGroup 
           manual
+          className="border-b border-b-black"
           onChange={onTabChange}
-          className="p-2" 
           selectedIndex={selectedTab} 
         >
           <TabList>
@@ -60,8 +62,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             </div>
           </TabList>
         </TabGroup>
+
         <Outlet />
-      </>
+      </div>
     );
   }
 });
