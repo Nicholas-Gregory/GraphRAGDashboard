@@ -6,7 +6,10 @@ let ctx = await esbuild.context({
   outdir: './dist',
 });
 
-let { hosts, port } = await ctx.serve({ servedir: './dist' });
+let { hosts, port } = await ctx.serve({ 
+  servedir: './dist',
+  fallback: './dist/index.html',
+});
 
 await ctx.watch();
 console.log('ESBuild is watching for changes...', `http://${hosts[0]}:${port}`);
