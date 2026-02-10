@@ -26,6 +26,7 @@
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "express": "^5.2.1",
+    "iron-session": "^8.0.4",
     "jsonwebtoken": "^9.0.3",
     "neode": "^0.4.9"
   }

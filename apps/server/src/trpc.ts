@@ -3,24 +3,27 @@ import { CreateNextContextOptions } from "@trpc/server/adapters/next";
 import jwt from "jsonwebtoken";
 import { db } from "./config";
 import { signUp } from "./procedures/auth";
+import { getIronSession } from "iron-session";
 
-export const createContext = ({ req }: CreateNextContextOptions) => {
-  const header = req.headers.authorization;
-  const context = { db };
+interface SessionData {
+  userId: string;
+  isLoggedIn: boolean;
+}
 
-  if (header?.startsWith('Bearer ')) {
-    const token = header.split(' ')[1];
-
-    try {
-      const user = jwt.verify(token, process.env.JWT_SECRET);
-
-      return { ...context, user };
-    } catch {
-      return context;
+export const createContext = async ({ req, res }: CreateNextContextOptions) => {
+  const session = await getIronSession<SessionData>(req, res, {
+    password: process.env.SESSION_SECRET,
+    cookieName: 'graphrag_session',
+    cookieOptions: {
+      httpOnly: true,
+      sameSite: 'none',
+      secure: true
     }
-  }
+  });
 
-  return context;
+  return {
+    req, res, session, db
+  }
 };
 
 type Context = Awaited<ReturnType<typeof createContext>>

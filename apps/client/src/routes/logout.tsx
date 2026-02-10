@@ -1,9 +1,17 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, Navigate } from '@tanstack/react-router'
+import { trpc } from '../utils/trpc'
+import React, { useEffect } from 'react';
 
 export const Route = createFileRoute('/logout')({
   component: RouteComponent,
 })
 
 function RouteComponent() {
-  return <div>Hello "/logout"!</div>
+  const logout = trpc.logOut.useMutation();
+
+  useEffect(() => {
+    logout.mutate();
+  }, []);
+
+  return <Navigate to="/auth" />
 }

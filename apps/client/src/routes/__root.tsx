@@ -5,23 +5,26 @@ import { QueryClient } from '@tanstack/react-query';
 import { createRootRouteWithContext, Link, Outlet, useLocation } from '@tanstack/react-router';
 import { trpc, trpcUtils } from '../utils/trpc';
 import { useNavigate } from '@tanstack/react-router';
+import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
-  loader: ({ context: { queryClient } }) => {
-    return queryClient.ensureQueryData(
-      trpcUtils.getLoggedInUser.queryOptions()
-    )
-  },
   component: () => {
     const pathSegment = useLocation({ select: (location: any) => location.pathname.split('/')[1] }) as unknown as string;
     const tabMap: Record<string, number> = { 'home': 0, 'app': 1, 'logout': 2, 'auth': 1 };
     const [selectedTab, setSelectedTab] = useState(tabMap[pathSegment] ?? 0);
-    const { data: user } = trpc.getLoggedInUser.useQuery();
+    const me = trpc.me.useMutation();
+    const [user, setUser] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
       setSelectedTab(tabMap[pathSegment] ?? 0);
+      me.mutate();
     }, [pathSegment]);
+
+    useEffect(() => {
+      setUser(me.data?.user ?? null);
+    }, [me]);
 
     const onTabChange = (index: number) => {
       if (index === 0) navigate({ to: '/home' });
@@ -64,6 +67,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         </TabGroup>
 
         <Outlet />
+        <TanStackRouterDevtools />
+        <ReactQueryDevtools initialIsOpen={false} />
       </div>
     );
   }

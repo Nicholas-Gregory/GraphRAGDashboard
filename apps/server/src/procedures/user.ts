@@ -1,11 +1,11 @@
 import { publicProcedure } from "src/trpc";
 import { auth } from "../middleware/auth";
 
-export const getLoggedInUser = publicProcedure
-.query(async ({ ctx }) => {
-  if ("user" in ctx && ctx.user) {
-    return ctx.user;
+export const me = publicProcedure
+.mutation(async ({ ctx }) => {
+  if (!ctx.session.isLoggedIn) {
+    return { user: null }
   }
 
-  return null;
+  return { user: { id: ctx.session.userId } }
 });

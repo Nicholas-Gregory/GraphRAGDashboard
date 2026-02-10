@@ -1,6 +1,7 @@
-import { createFileRoute } from '@tanstack/react-router'
-import React, { useState } from 'react';
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import React, { useEffect, useState } from 'react';
 import { Fieldset, Field, Input, Button, Switch, Transition } from '@headlessui/react';
+import { trpc } from '../utils/trpc';
 
 export const Route = createFileRoute('/auth')({
   component: RouteComponent,
@@ -12,6 +13,14 @@ function RouteComponent() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [needPassword, setNeedPassword] = useState(false);
+  const [needUsernameOrEmail, setNeedUsernameOrEmail] = useState(false);
+  const logInMutation = trpc.logIn.useMutation();
+  const signUpMutation = trpc.signUp.useMutation();
+  const me = trpc.me.useMutation();
+  const utils = trpc.useUtils()
+  const navigate = useNavigate();
+
 
   const emailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
@@ -31,16 +40,33 @@ function RouteComponent() {
 
   const formSubmitHandler = (e: React.SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (signup) {
       // Handle signup
     } else {
-      if (password && (email || username)) {
-        
-      } else {
-
+      if (!password) {
+        setNeedPassword(true);
+        return;
       }
+      if (!email && !username) {
+        setNeedUsernameOrEmail(true);
+        return;
+      }
+
+      logInMutation.mutate({
+        email,
+        username,
+        password
+      });
     }
   }
+
+  useEffect(() => {
+    if (logInMutation.isSuccess) {
+      utils.me.reset();
+      navigate({ to: '/app' });
+    }
+  }, [logInMutation.isSuccess]);
 
   return (
     <div className="flex flex-col gap-4">
