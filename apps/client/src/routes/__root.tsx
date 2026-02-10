@@ -23,7 +23,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     }, [pathSegment]);
 
     useEffect(() => {
-      setUser(me.data?.user ?? null);
+      if (me.isSuccess) setUser(me.data?.user ?? null);
     }, [me]);
 
     const onTabChange = (index: number) => {
@@ -56,11 +56,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
                   <Tab className="data-selected:bg-blue-500">Logout</Tab>
                 </>
               ) : (
-                <Link to='/auth'>
-                  <Tab className="data-selected:bg-blue-500">
-                    Login/Signup
-                  </Tab>
-                </Link>
+                (
+                  <Link to='/auth'>
+                    <Tab className="data-selected:bg-blue-500">
+                      Login/Signup
+                    </Tab>
+                  </Link>
+                )
               )}
             </div>
           </TabList>
