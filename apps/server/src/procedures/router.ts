@@ -1,12 +1,14 @@
-import { t } from "../trpc";
+import { router } from "../trpc";
 import { logIn, logOut, signUp } from "./auth";
+import { writeFullText } from "./text";
 import { me } from "./user";
 
-export const appRouter = t.router({
+export const appRouter = router({
   signUp,
   me,
   logIn,
-  logOut
+  logOut,
+  writeFullText,
 })
 
 export type AppRouter = typeof appRouter;

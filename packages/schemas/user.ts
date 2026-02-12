@@ -1,5 +1,4 @@
 import z from 'zod';
-import { zodToNeode } from './utils';
 
 export const userSchema = z.object({
   id: z.uuid(),
@@ -9,4 +8,3 @@ export const userSchema = z.object({
 });
 
 export type User = z.infer<typeof userSchema>;
-export const UserDBSchema = zodToNeode(userSchema);

@@ -22,7 +22,7 @@ export const createContext = async ({ req, res }: CreateNextContextOptions) => {
   });
 
   return {
-    req, res, session, db
+    session, db
   }
 };
 
@@ -30,4 +30,5 @@ type Context = Awaited<ReturnType<typeof createContext>>
 
 export const t = initTRPC.context<Context>().create();
 
+export const router = t.router;
 export const publicProcedure = t.procedure;

@@ -1,8 +1,9 @@
 import z from 'zod';
 
-const TextSchema = z.object({
+export const textSchema = z.object({
   id: z.uuid(),
-  content: z.string().min(1).max(5000),
+  dateAdded: z.date(),
+  content: z.string().min(1)
 });
 
-export type Text = z.infer<typeof TextSchema>;
+export type Text = z.infer<typeof textSchema>;

@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "concurrently \"tsc --noEmit --watch --preserveWatchOutput --incremental\" \"esbuild ./src/server.ts --bundle --outdir=dist --watch --platform=node --target=es2017\" \"nodemon dist/server.js\""
+    "dev": "concurrently \"tsc --noEmit --watch --preserveWatchOutput --incremental\" \"esbuild ./src/server.ts --bundle --outdir=dist --watch --platform=node --target=esnext\" \"nodemon dist/server.js\""
   },
   "keywords": [],
   "author": "",
