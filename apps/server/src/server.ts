@@ -22,9 +22,10 @@ app.use(
 
 const startup = async () => {
   try {
-    await db.cypher('RETURN 1 AS test', {});
+    // await db.cypher('RETURN 1 AS test', {});
+    const serverInfo = await db.getServerInfo();  
 
-    console.error('Database connection is healthy');
+    console.error('Database connection is healthy.', serverInfo);
 
     app.listen(4000, () => {
       console.error('Server is running on http://localhost:4000');
