@@ -2,10 +2,9 @@ import { initTRPC } from "@trpc/server";
 import { CreateNextContextOptions } from "@trpc/server/adapters/next";
 import jwt from "jsonwebtoken";
 import { db } from "./config";
-import { signUp } from "./procedures/auth";
 import { getIronSession } from "iron-session";
 
-interface SessionData {
+export interface SessionData {
   userId: string;
   isLoggedIn: boolean;
 }
@@ -29,6 +28,5 @@ export const createContext = async ({ req, res }: CreateNextContextOptions) => {
 type Context = Awaited<ReturnType<typeof createContext>>
 
 export const t = initTRPC.context<Context>().create();
-
 export const router = t.router;
 export const publicProcedure = t.procedure;

@@ -2,7 +2,9 @@ import z from "zod";
 
 export const nameSchema = z.object({
   id: z.uuid(),
-  value: z.string().min(2).max(100),
+  firstName: z.string().min(2).max(100),
+  middleName: z.string().min(2).max(100).optional(),
+  lastName: z.string().min(2).max(100),
   dateAdded: z.date()
 });
 

@@ -57,7 +57,8 @@ export const logIn = publicProcedure
   return { success: true }
 });
 
-export const logOut = publicProcedure.mutation(({ ctx }) => {
+export const logOut = publicProcedure
+.mutation(({ ctx }) => {
   ctx.session.destroy();
 
   return { success: true };
