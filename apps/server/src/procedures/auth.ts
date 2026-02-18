@@ -4,20 +4,21 @@ import { userSchema } from "@graphragdashboard/packages/schemas/user";
 import bcrypt from 'bcryptjs'
 import { TRPCError } from "@trpc/server";
 import { getIronSession } from 'iron-session';
+import { createUser } from "src/database-layer/user";
 
 export const signUp = publicProcedure
 .input(userSchema.omit({ id: true }))
 .mutation(async ({ input, ctx }) => {
-  // const hashedPassword = await bcrypt.hash(input.password, 10);
   const db = ctx.db;
 
   try {
-    // await db.create('User', {
-    //   email: input.email,
-    //   password: hashedPassword,
-    //   username: input.username,
-    //   id: crypto.randomUUID()
-    // })
+    const user = await createUser(db, {
+      email: input.email,
+      password: input.password,
+      username: input.username
+    });
+
+    return user;
   } catch (error) {
     throw new TRPCError({
       code: "INTERNAL_SERVER_ERROR",
@@ -28,11 +29,13 @@ export const signUp = publicProcedure
 })
 
 export const logIn = publicProcedure
-.input(z.object({
-  email: z.email().optional(),
-  password: z.string().min(6).max(100),
-  username: z.string().min(3).max(20).optional()
-}))
+.input(userSchema
+  .omit({ id: true })
+  .partial({
+    email: true,
+    username: true
+  })
+)
 .mutation(async ({ input, ctx }) => {
   const db = ctx.db;
 

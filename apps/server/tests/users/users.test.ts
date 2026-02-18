@@ -2,10 +2,11 @@ import { test, describe, before, after } from "node:test";
 import assert from "node:assert";
 import { Driver } from "neo4j-driver";
 import { createMockSession, startNeo4j, stopNeo4j } from "../utils";
-import { createCaller } from "src/router"
+import { createCaller } from "src/router";
+import bcrypt from 'bcryptjs';
 
 
-describe("User CRUD Procedures", () => {
+describe("User Procedures", () => {
   let dbDriver: Driver;
 
   before(async() => {
@@ -37,5 +38,27 @@ describe("User CRUD Procedures", () => {
     const result = await caller.me();
 
     assert.equal(result.user.id, "test-user");
-  })
-})
+  });
+
+  test("should create a new user", async () => {
+    const caller = createCaller({
+      db: dbDriver,
+      session: createMockSession()
+    });
+
+    const result = await caller.signUp({
+      email: "test@example.com",
+      password: "password",
+      username: "testuser"
+    });
+
+    // run cypher query by id and compare the values
+    const user = await dbDriver.executeQuery('MATCH (u:User {id: $id}) RETURN u.email, u.username, u.password', {
+      id: result.id
+    });
+
+    assert.equal(user.records[0].get('u.email'), "test@example.com");
+    assert.equal(user.records[0].get('u.username'), "testuser");
+    assert.equal(bcrypt.compareSync("password", user.records[0].get('u.password')), true);
+  });
+});
