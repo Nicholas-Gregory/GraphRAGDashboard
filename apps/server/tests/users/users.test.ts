@@ -49,7 +49,7 @@ describe("User Procedures", () => {
     const result = await caller.signUp({
       email: "test@example.com",
       password: "password",
-      username: "testuser"
+      username: "testuser1"
     });
 
     // run cypher query by id and compare the values
@@ -58,7 +58,33 @@ describe("User Procedures", () => {
     });
 
     assert.equal(user.records[0].get('u.email'), "test@example.com");
-    assert.equal(user.records[0].get('u.username'), "testuser");
+    assert.equal(user.records[0].get('u.username'), "testuser1");
     assert.equal(bcrypt.compareSync("password", user.records[0].get('u.password')), true);
+  });
+
+  test("should log in an existing user", async () => {
+    const session = createMockSession();
+    const caller = createCaller({
+      db: dbDriver,
+      session
+    });
+
+    const createdUser = await caller.signUp({
+      email: "test@example.com",
+      password: "password",
+      username: "testuser2"
+    });
+
+    const result = await caller.logIn({
+      email: "test@example.com",
+      password: "password",
+      username: "testuser2"
+    });
+
+    assert.equal(result.email, "test@example.com");
+    assert.equal(result.username, "testuser2");
+    assert.equal(result.id, createdUser.id);
+    assert.equal(session.userId, createdUser.id);
+    assert.equal(session.isLoggedIn, true);
   });
 });

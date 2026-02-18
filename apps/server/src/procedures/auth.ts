@@ -6,8 +6,13 @@ import { TRPCError } from "@trpc/server";
 import { getIronSession } from 'iron-session';
 import { createUser } from "src/database-layer/user";
 
+const signUpInputSchema = userSchema.omit({ 
+  id: true,
+  nodes: true
+});
+
 export const signUp = publicProcedure
-.input(userSchema.omit({ id: true }))
+.input(signUpInputSchema)
 .mutation(async ({ input, ctx }) => {
   const db = ctx.db;
 
@@ -30,7 +35,10 @@ export const signUp = publicProcedure
 
 export const logIn = publicProcedure
 .input(userSchema
-  .omit({ id: true })
+  .omit({ 
+    id: true,
+    nodes: true
+  })
   .partial({
     email: true,
     username: true
@@ -39,25 +47,44 @@ export const logIn = publicProcedure
 .mutation(async ({ input, ctx }) => {
   const db = ctx.db;
 
-  // const node = (await db.cypher('MATCH (u:User) WHERE u.email = $email OR u.username = $username RETURN u', {
-  //   email: input.email,
-  //   username: input.username
-  // })).records[0].get('u');
+  const userResult = await db.executeQuery(
+    `
+    MATCH (u:User)
+    WHERE u.email = $email AND u.username = $username
+    RETURN u
+    `,
+    {
+      email: input.email,
+      username: input.username
+    }
+  );
 
-  // compare bcrypt passwords
-  // const isValid = await bcrypt.compare(input.password, node.properties.password);
-  // if (!isValid) {
-  //   throw new TRPCError({
-  //     code: "UNAUTHORIZED",
-  //     message: "Invalid email/username or password"
-  //   });
-  // }
+  if (!userResult.records.length) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Invalid email/username or password"
+    });
+  }
 
-  // ctx.session.userId = node.properties.id;
+  const userNode = userResult.records[0].get('u');
+  const isValid = await bcrypt.compare(input.password, userNode.properties.password);
+
+  if (!isValid) {
+    throw new TRPCError({
+      code: "UNAUTHORIZED",
+      message: "Invalid email/username or password"
+    });
+  }
+
+  ctx.session.userId = userNode.properties.id;
   ctx.session.isLoggedIn = true;
   await ctx.session.save();
 
-  return { success: true }
+  return {
+    email: userNode.properties.email,
+    username: userNode.properties.username,
+    id: userNode.properties.id
+  };
 });
 
 export const logOut = publicProcedure
