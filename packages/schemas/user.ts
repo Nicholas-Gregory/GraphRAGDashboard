@@ -6,6 +6,7 @@ export const userSchema = z.object({
   email: z.email(),
   username: z.string().min(3).max(20),
   password: z.string().min(8).max(100),
+  joinedAt: z.date(),
   nodes: z.array(z.lazy(() => nodeSchema).or(z.uuid())).optional()
 });
 

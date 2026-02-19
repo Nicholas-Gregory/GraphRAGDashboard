@@ -3,7 +3,6 @@ import * as trpcExpress from '@trpc/server/adapters/express';
 import { appRouter } from './router';
 import { createContext } from './trpc';
 import cors from 'cors';
-import { db } from './config'; 
 
 const app = express();
 
@@ -22,10 +21,7 @@ app.use(
 
 const startup = async () => {
   try {
-    // await db.cypher('RETURN 1 AS test', {});
-    const serverInfo = await db.getServerInfo();  
-
-    console.error('Database connection is healthy.', serverInfo);
+    require('./config').db; // Ensure the database connection is established before starting the server
 
     app.listen(4000, () => {
       console.error('Server is running on http://localhost:4000');

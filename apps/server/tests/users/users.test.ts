@@ -47,7 +47,7 @@ describe("User Procedures", () => {
     });
 
     const result = await caller.signUp({
-      email: "test@example.com",
+      email: "test1@example.com",
       password: "password",
       username: "testuser1"
     });
@@ -57,7 +57,7 @@ describe("User Procedures", () => {
       id: result.id
     });
 
-    assert.equal(user.records[0].get('u.email'), "test@example.com");
+    assert.equal(user.records[0].get('u.email'), "test1@example.com");
     assert.equal(user.records[0].get('u.username'), "testuser1");
     assert.equal(bcrypt.compareSync("password", user.records[0].get('u.password')), true);
   });
@@ -70,18 +70,18 @@ describe("User Procedures", () => {
     });
 
     const createdUser = await caller.signUp({
-      email: "test@example.com",
+      email: "test2@example.com",
       password: "password",
       username: "testuser2"
     });
 
     const result = await caller.logIn({
-      email: "test@example.com",
+      email: "test2@example.com",
       password: "password",
       username: "testuser2"
     });
 
-    assert.equal(result.email, "test@example.com");
+    assert.equal(result.email, "test2@example.com");
     assert.equal(result.username, "testuser2");
     assert.equal(result.id, createdUser.id);
     assert.equal(session.userId, createdUser.id);

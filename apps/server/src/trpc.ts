@@ -1,7 +1,7 @@
 import { initTRPC } from "@trpc/server";
 import { CreateNextContextOptions } from "@trpc/server/adapters/next";
 import jwt from "jsonwebtoken";
-import { db } from "./config";
+import { dbPromise } from "./config";
 import { getIronSession } from "iron-session";
 
 export interface SessionData {
@@ -19,6 +19,8 @@ export const createContext = async ({ req, res }: CreateNextContextOptions) => {
       secure: true
     }
   });
+
+  const db = await dbPromise;
 
   return {
     session, db

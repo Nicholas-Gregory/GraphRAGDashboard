@@ -4,11 +4,12 @@ import { userSchema } from "@graphragdashboard/packages/schemas/user";
 import bcrypt from 'bcryptjs'
 import { TRPCError } from "@trpc/server";
 import { getIronSession } from 'iron-session';
-import { createUser } from "src/database-layer/user";
+import { createUser } from "src/database-layer/queries/user";
 
 const signUpInputSchema = userSchema.omit({ 
   id: true,
-  nodes: true
+  nodes: true,
+  joinedAt: true
 });
 
 export const signUp = publicProcedure
@@ -37,7 +38,8 @@ export const logIn = publicProcedure
 .input(userSchema
   .omit({ 
     id: true,
-    nodes: true
+    nodes: true,
+    joinedAt: true
   })
   .partial({
     email: true,
