@@ -1,39 +1,66 @@
 import { Driver } from "neo4j-driver";
-import { Name } from "@graphragdashboard/packages/schemas/name";
+import { WNOName } from '@graphragdashboard/packages/schemas/wno-name';
 
-export const addNewFullName = async (db: Driver, name: Pick<Name, 'firstName' | 'middleName' | 'lastName'>): Promise<Name> => {
-  let { firstName, middleName, lastName } = name;
+export const upsertWnoName = async (
+  db: Driver, 
+  name: Pick<WNOName, 'givenName' | 'surname'> & Partial<Pick<WNOName, 'middleName'>>,
+  userId: string
+): Promise<WNOName> => {
+  const { givenName, middleName, surname } = name;
   const id = crypto.randomUUID();
   const dateAdded = new Date().toISOString();
-  firstName = firstName.charAt(0).toUpperCase() + firstName.slice(1);
-  middleName = middleName.charAt(0).toUpperCase() + middleName.slice(1);
-  lastName = lastName.charAt(0).toUpperCase() + lastName.slice(1);
-  const fullName = `${firstName} ${middleName} ${lastName}`;
-  const middleInitial = middleName.charAt(0);
-  const firstLastName = `${firstName} ${lastName}`;
-  const firstLastNameMI = `${firstName} ${middleInitial} ${lastName}`;
+  
+  const result = await db.executeQuery(`
+    MATCH (u:User { id: $userId })
 
-  const hubResult = await db.executeQuery(
-    `
-    MERGE (n:Name { id: $id, dateAdded: $dateAdded })
+    MERGE (n:Name { id: $id })<-[a:ADDED { date: $dateAdded }]-(u)
 
-    MERGE (fullName:Name:FullName { content: $fullName })<-[:HAS_PART]-(n)
-    MERGE (firstName:Name:FirstName { content: $firstName })<-[:HAS_PART]-(n)
-    MERGE (middleName:Name:MiddleName { content: $middleName })<-[:HAS_PART]-(n)
-    MERGE (lastName:Name:LastName { content: $lastName })<-[:HAS_PART]-(n)
-    MERGE (middleInitial:Name:MiddleInitial { content: $middleInitial })<-[:HAS_PART]-(n)
-    MERGE (firstLastName:Name:FirstLastName { content: $firstLastName })<-[:HAS_PART]-(n)
-    MERGE (firstLastNameMI:Name:FirstLastNameMiddleInitial { content: $firstLastNameMI })<-[:HAS_PART]-(n)
+    MERGE (givenName:Text:Name:GivenName { content: $givenName })<-[:HAS_TEXT_PART { position: 0 }]-(n)
+    MERGE (surname:Text:Name:Surname { content: $surname })
 
-    RETURN firstName.content, middleName.content, lastName.content, n.id, n.dateAdded`,
-    { firstName, middleName, lastName, id, fullName, middleInitial, firstLastName, firstLastNameMI, dateAdded }
-  );
+    WITH n, givenName, surname, a,
+     CASE WHEN $middleName IS NOT NULL THEN [$middleName] ELSE [] END AS middleNamePath
+
+    FOREACH (_ IN middleNamePath |
+      MERGE (middleName:Text:Name:MiddleName { content: $middleName })<-[:HAS_TEXT_PART { position: 1 }]-(n)
+      MERGE (givenName)-[:TEXT_NEXT]->(middleName)
+      MERGE (surname)<-[:HAS_TEXT_PART { position: 2 }]-(n)
+      MERGE (middleName)-[:TEXT_NEXT]->(surname)
+    )
+
+    WITH n, givenName, surname, a,
+      CASE WHEN $middleName IS NULL THEN [1] ELSE [] END AS directPath
+    FOREACH (_ IN directPath |
+      MERGE (givenName)-[:TEXT_NEXT]->(surname)<-[:HAS_TEXT_PART { position: 1 }]-(n)
+    )
+
+    WITH n, givenName, surname, a
+    OPTIONAL MATCH (n)-[:HAS_TEXT_PART]->(middleName:MiddleName)
+    
+    RETURN n.id AS id, givenName.content AS givenName, middleName.content AS middleName, surname.content AS surname, a.date AS dateAdded
+  `, {
+    id, dateAdded, givenName, middleName: middleName || null, surname, userId
+  });
+  
+  let givenNameResult: string;
+  let middleNameResult: string;
+  let surnameResult: string;
+  let idResult: string;
+  let dateAddedResult: Date;
+
+  for (let record of result.records) {
+    givenNameResult = record.get('givenName');
+    middleNameResult = record.get('middleName');
+    surnameResult = record.get('surname');
+    idResult = record.get('id');
+    dateAddedResult = record.get('dateAdded');
+  }
 
   return {
-    id: hubResult.records[0].get('n.id'),
-    firstName: hubResult.records[0].get('firstName.content'),
-    middleName: hubResult.records[0].get('middleName.content'),
-    lastName: hubResult.records[0].get('lastName.content'),
-    dateAdded: hubResult.records[0].get('n.dateAdded')
-  };
+    id: idResult,
+    givenName: givenNameResult,
+    middleName: middleNameResult,
+    surname: surnameResult,
+    dateAdded: dateAddedResult
+  }
 }

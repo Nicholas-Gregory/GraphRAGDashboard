@@ -1,5 +1,4 @@
 import { publicProcedure } from "src/trpc";
-import { auth } from "../middleware/auth";
 
 export const me = publicProcedure
 .mutation(async ({ ctx }) => {
