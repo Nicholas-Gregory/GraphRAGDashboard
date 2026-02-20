@@ -1,16 +1,17 @@
-import { wnoName } from "@graphragdashboard/packages/schemas/wno-name";
-import { upsertWnoName } from "src/database-layer/queries/name";
+import { nameSchema } from "@graphragdashboard/packages/schemas/name";
+import { upsertName } from "src/database-layer/queries/name";
 import { privateProcedure } from "src/middleware/private-procedure";
 
-export const createWnoName = privateProcedure
+export const createName = privateProcedure
 .input(
-  wnoName.omit({
+  nameSchema.omit({
     id: true,
-    dateAdded: true
+    dateAdded: true,
+    addedBy: true
   })
 )
 .mutation(async ({ input, ctx }) => {
-  const result = await upsertWnoName(ctx.db, input, ctx.session.userId);
+  const result = await upsertName(ctx.db, input, ctx.session.userId);
 
   return result;
 })

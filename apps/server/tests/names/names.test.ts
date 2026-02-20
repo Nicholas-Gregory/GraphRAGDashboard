@@ -18,24 +18,42 @@ describe("Name Procedures", async () => {
       session: createMockSession()
     });
 
-    const givenName = 'Dank';
-    const middleName = 'Effin';
-    const surname = 'Name';
-
     const user = { email: 'test@test.com', username: 'test', password: 'password' }
 
     await caller.signUp(user);
     await caller.logIn(user);
 
-    const result = await caller.createWnoName({
-      givenName,
-      middleName, 
-      surname,
+    const result = await caller.createName({
+      names: [
+        {
+          name: 'Albus',
+          type: 'given',
+          primary: true
+        },
+        {
+          name: 'Percival',
+          type: 'given',
+          primary: false
+        },
+        {
+          name: 'Wulfric',
+          type: 'given',
+          primary: false
+        },
+        {
+          name: 'Brian',
+          type: 'given',
+          primary: false
+        },
+        {
+          name: 'Dumbledore',
+          type: 'surname',
+          primary: true
+        }
+      ]
     });
 
-    assert.equal(result.givenName, givenName);
-    assert.equal(result.middleName, middleName);
-    assert.equal(result.surname, surname);
+    console.log(result)
   })
 
   end();

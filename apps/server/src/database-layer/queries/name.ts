@@ -1,66 +1,120 @@
-import { Driver } from "neo4j-driver";
-import { WNOName } from '@graphragdashboard/packages/schemas/wno-name';
+import { Driver, Node } from "neo4j-driver";
+import { Name, SubName } from '@graphragdashboard/packages/schemas/name';
+import { int, Integer } from 'neo4j-driver'; 
 
-export const upsertWnoName = async (
+export const upsertName = async (
   db: Driver, 
-  name: Pick<WNOName, 'givenName' | 'surname'> & Partial<Pick<WNOName, 'middleName'>>,
+  name: Omit<Name, 'id' | 'dateAdded' | 'addedBy'>,
   userId: string
-): Promise<WNOName> => {
-  const { givenName, middleName, surname } = name;
-  const id = crypto.randomUUID();
-  const dateAdded = new Date().toISOString();
+): Promise<Name> => {
+  const nameId = crypto.randomUUID();
+  const dateAdded = new Date();
+
+  const indices: Integer[] = [];
+  const subnames: string[] = [];
+  const typeList: string[] = [];
+  const primaryList: boolean[] = [];
+
+  for (let i = 0; i < name.names.length; i++) {
+    const subname = name.names[i];
+
+    indices.push(int(i));
+    subnames.push(subname.name);
+    typeList.push(subname.type)
+    primaryList.push(subname.primary)
+  }
   
   const result = await db.executeQuery(`
     MATCH (u:User { id: $userId })
 
-    MERGE (n:Identity:Name { id: $id })<-[a:ADDED { date: $dateAdded }]-(u)
+    MERGE (n:Name { id: $nameId })
+    SET n.honorific = $honorific
+    SET n.preferred = $preferred
+    MERGE (u)-[a:ADDED { date: $date }]->(n)
 
-    MERGE (givenName:Text:Name:GivenName { content: $givenName })<-[:HAS_TEXT_PART { position: 0 }]-(n)
-    MERGE (surname:Text:Name:Surname { content: $surname })
+    FOREACH (i IN $indices |
+      FOREACH (_ IN CASE $typeList[i] WHEN 'given' THEN [1] ELSE [] END |
+        FOREACH (_ IN CASE $primaryList[i] WHEN TRUE THEN [1] ELSE [] END |
+          MERGE (n)-[:HAS_TEXT_PART { position: i }]->(sn:Text:Name:GivenName:PrimaryName { content: $subnames[i] })
+        )
+        
+        FOREACH (_ IN CASE $primaryList[i] WHEN FALSE THEN [1] ELSE [] END |
+          MERGE (n)-[:HAS_TEXT_PART { position: i }]->(sn:Text:Name:GivenName:SecondaryName { content: $subnames[i] })
+        )
+      )
+      
+      FOREACH (_ IN CASE $typeList[i] WHEN 'surname' THEN [1] ELSE [] END |
+        FOREACH (_ IN CASE $primaryList[i] WHEN TRUE THEN [1] ELSE [] END |
+          MERGE (n)-[:HAS_TEXT_PART { position: i }]->(sn:Text:Name:Surname:PrimaryName { content: $subnames[i] })
+        )
 
-    WITH n, givenName, surname, a,
-     CASE WHEN $middleName IS NOT NULL THEN [$middleName] ELSE [] END AS middleNamePath
-
-    FOREACH (_ IN middleNamePath |
-      MERGE (middleName:Text:Name:MiddleName { content: $middleName })<-[:HAS_TEXT_PART { position: 1 }]-(n)
-      MERGE (givenName)-[:TEXT_NEXT]->(middleName)
-      MERGE (surname)<-[:HAS_TEXT_PART { position: 2 }]-(n)
-      MERGE (middleName)-[:TEXT_NEXT]->(surname)
+        FOREACH (_ IN CASE $primaryList[i] WHEN FALSE THEN [1] ELSE [] END |
+          MERGE (n)-[:HAS_TEXT_PART { position: i }]->(sn:Text:Name:Surname:SecondaryName { content: $subnames[i] })
+        )
+      )
     )
 
-    WITH n, givenName, surname, a,
-      CASE WHEN $middleName IS NULL THEN [1] ELSE [] END AS directPath
-    FOREACH (_ IN directPath |
-      MERGE (givenName)-[:TEXT_NEXT]->(surname)<-[:HAS_TEXT_PART { position: 1 }]-(n)
-    )
+    WITH n, u, a
+    MATCH (n)-[:HAS_TEXT_PART]->(nl:Text:Name)
 
-    WITH n, givenName, surname, a
-    OPTIONAL MATCH (n)-[:HAS_TEXT_PART]->(middleName:MiddleName)
-    
-    RETURN n.id AS id, givenName.content AS givenName, middleName.content AS middleName, surname.content AS surname, a.date AS dateAdded
+    WITH nl, u, a, n
+    ORDER BY nl.position ASC
+    WITH collect(nl) AS nodeList, u, a, n
+
+    UNWIND range(0, size(nodeList) -2) AS i
+    WITH nodeList, u, a, n, nodeList[i] AS current, nodeList[i+1] AS next
+    MERGE (current)-[:TEXT_NEXT]->(next)
+
+    RETURN u.id AS addedBy, a.date AS dateAdded, n.id AS id, nodeList AS nameList, n.honorific AS honorific, n.preferred AS preferred
   `, {
-    id, dateAdded, givenName, middleName: middleName || null, surname, userId
+    userId, 
+    nameId,
+    indices,
+    subnames,
+    typeList,
+    primaryList,
+    date: dateAdded.toISOString(),
+    honorific: name.honorific || null,
+    preferred: name.preferred || null
   });
-  
-  let givenNameResult: string;
-  let middleNameResult: string;
-  let surnameResult: string;
-  let idResult: string;
-  let dateAddedResult: Date;
 
-  for (let record of result.records) {
-    givenNameResult = record.get('givenName');
-    middleNameResult = record.get('middleName');
-    surnameResult = record.get('surname');
-    idResult = record.get('id');
+  let id: string;
+  let namesNodeList: Node[];
+  let dateAddedResult: Date;
+  let addedBy: string;
+  let preferred: string;
+  let honorific: string;
+  for (const record of result.records) {
+    id = record.get('id');
+    namesNodeList = record.get('nameList');
+    honorific = record.get('honorific');
+    preferred = record.get('preferred');
     dateAddedResult = record.get('dateAdded');
+    addedBy = record.get('addedBy');
+  }
+
+  const names: SubName[] = [];
+  for (const node of namesNodeList) {
+    let type;
+    let primary;
+    const name = node.properties.content;
+
+    if (node.labels.includes('GivenName')) type = 'given';
+    if (node.labels.includes('Surname')) type = 'surname';
+    if (node.labels.includes('PrimaryName')) primary = true;
+    if (node.labels.includes("SecondaryName")) primary = false;
+
+    names.push({
+      name, type, primary
+    });
   }
 
   return {
-    id: idResult,
-    givenName: givenNameResult,
-    middleName: middleNameResult,
-    surname: surnameResult,
-    dateAdded: dateAddedResult
+    id: nameId,
+    names,
+    preferred,
+    honorific,
+    dateAdded: dateAddedResult,
+    addedBy
   }
 }
