@@ -1,22 +1,18 @@
 import { test, describe, before, after } from 'node:test';
 import assert from 'node:assert';
 import { Driver } from 'neo4j-driver';
-import { createMockSession, startNeo4j, stopNeo4j } from '../utils';
+import { createMockSession, end, startNeo4j, stopNeo4j } from '../utils';
 import { createCaller } from 'src/router';
+import { getDatabaseInstance } from 'src/database-layer/setup';
 
-describe("Name Procedures", () => {
-  let dbDriver: Driver;
+describe("Name Procedures", async () => {
+  const dbDriver = await getDatabaseInstance(
+    process.env.TEST_DB_URL,
+    "neo4j",
+    process.env.NEO4J_TEST_PASSWORD
+  );
 
-  before(async () => {
-    const { driver } = await startNeo4j();
-    dbDriver = driver;
-  });
-
-  after(async () => {
-    await stopNeo4j();
-  });
-
-  test("should create a new full name", async () => {
+  test("should create a new full name", async (t) => {
     const caller = createCaller({ 
       db: dbDriver, 
       session: createMockSession()
@@ -41,4 +37,6 @@ describe("Name Procedures", () => {
     assert.equal(result.middleName, middleName);
     assert.equal(result.surname, surname);
   })
+
+  end();
 })

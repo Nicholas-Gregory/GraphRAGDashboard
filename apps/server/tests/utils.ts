@@ -4,6 +4,7 @@ import 'dotenv/config';
 import { IronSession } from "iron-session";
 import { SessionData } from "src/trpc";
 import { getDatabaseInstance } from 'src/database-layer/setup';
+import { after } from 'node:test';
 
 let container: StartedNeo4jContainer;
 let driver: Driver;
@@ -40,3 +41,11 @@ export const createMockSession = (initialData?: SessionData): IronSession<Sessio
     destroy: () => {}
   } as IronSession<SessionData>;
 };
+
+export const end = () => {
+  after(() => {
+    setTimeout(() => {
+      process.exit(0);
+    }, 100).unref()
+  })
+}

@@ -1,24 +1,20 @@
 import { test, describe, before, after } from "node:test";
 import assert from "node:assert";
 import { Driver } from "neo4j-driver";
-import { createMockSession, startNeo4j, stopNeo4j } from "../utils";
+import { createMockSession, end, startNeo4j, stopNeo4j } from "../utils";
 import { createCaller } from "src/router";
 import bcrypt from 'bcryptjs';
+import { getDatabaseInstance } from "src/database-layer/setup";
 
 
-describe("User Procedures", () => {
-  let dbDriver: Driver;
+describe("User Procedures", async () => {
+  const dbDriver = await getDatabaseInstance(
+    process.env.TEST_DB_URL,
+    "neo4j",
+    process.env.NEO4J_TEST_PASSWORD
+  );
 
-  before(async() => {
-    const { driver } = await startNeo4j();
-    dbDriver = driver;
-  })
-
-  after(async () => {
-    await stopNeo4j();
-  });
-
-  test("should return null if no session", async () => {
+  test("should return null if no session", async (t) => {
     // 1. Create the typed caller with the container context
     const caller = createCaller({ db: dbDriver, session: createMockSession() });
 
@@ -29,7 +25,7 @@ describe("User Procedures", () => {
     );
   });
 
-  test("should return user data if session is active", async () => {
+  test("should return user data if session is active", async (t) => {
     const caller = createCaller({
       db: dbDriver,
       session: createMockSession({ userId: "test-user", isLoggedIn: true })
@@ -40,7 +36,7 @@ describe("User Procedures", () => {
     assert.equal(result.user.id, "test-user");
   });
 
-  test("should create a new user", async () => {
+  test("should create a new user", async (t) => {
     const caller = createCaller({
       db: dbDriver,
       session: createMockSession()
@@ -62,7 +58,7 @@ describe("User Procedures", () => {
     assert.equal(bcrypt.compareSync("password", user.records[0].get('u.password')), true);
   });
 
-  test("should log in an existing user", async () => {
+  test("should log in an existing user", async (t) => {
     const session = createMockSession();
     const caller = createCaller({
       db: dbDriver,
@@ -87,4 +83,6 @@ describe("User Procedures", () => {
     assert.equal(session.userId, createdUser.id);
     assert.equal(session.isLoggedIn, true);
   });
+
+  end();
 });

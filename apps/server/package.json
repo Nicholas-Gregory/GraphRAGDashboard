@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "tsx tests/**/*.test.ts",
+    "test": "tsx ./tests/run.ts",
     "dev": "concurrently \"tsc --noEmit --watch --preserveWatchOutput --incremental\" \"esbuild ./src/server.ts --bundle --outdir=dist --watch --platform=node --target=esnext\" \"nodemon dist/server.js\""
   },
   "keywords": [],

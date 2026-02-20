@@ -13,7 +13,7 @@ export const upsertWnoName = async (
   const result = await db.executeQuery(`
     MATCH (u:User { id: $userId })
 
-    MERGE (n:Name { id: $id })<-[a:ADDED { date: $dateAdded }]-(u)
+    MERGE (n:Identity:Name { id: $id })<-[a:ADDED { date: $dateAdded }]-(u)
 
     MERGE (givenName:Text:Name:GivenName { content: $givenName })<-[:HAS_TEXT_PART { position: 0 }]-(n)
     MERGE (surname:Text:Name:Surname { content: $surname })
