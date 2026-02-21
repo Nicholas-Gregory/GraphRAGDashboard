@@ -7,7 +7,8 @@ export const createName = privateProcedure
   nameSchema.omit({
     id: true,
     dateAdded: true,
-    addedBy: true
+    addedBy: true,
+    fullText: true
   })
 )
 .mutation(async ({ input, ctx }) => {

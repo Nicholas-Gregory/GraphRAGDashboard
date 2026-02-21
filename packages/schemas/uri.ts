@@ -1,9 +1,19 @@
-import z from "zod";
+import z from 'zod';
 
 export const uriSchema = z.object({
-  id: z.uuid(),
-  value: z.url(),
-  dateAdded: z.date()
+  id: z.string(),
+  dateAdded: z.string(),
+  addedBy: z.string(),
+  fullText: z.string(),
+  protocol: z.string(),
+  authority: z.object({
+    host: z.string(),
+    port: z.number()
+  }),
+  path: z.string(),
+  query: z.string(),
+  type: z.string().optional(),
+  metadata: z.string().optional()
 });
 
-export type URI = z.infer<typeof uriSchema>;
+export type Uri = z.infer<typeof uriSchema>;

@@ -12,7 +12,8 @@ export const nameSchema = z.object({
   honorific: z.string().optional(),
   preferred: z.string().optional(),
   dateAdded: z.date(),
-  addedBy: z.string()
+  addedBy: z.string(),
+  fullText: z.string()
 });
 
 export type Name = z.infer<typeof nameSchema>;

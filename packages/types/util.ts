@@ -1,0 +1,1 @@
+export type InputSchema<T> = Omit<T, 'id' | 'dateAdded' | 'addedBy' | 'fullText'>

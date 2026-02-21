@@ -53,8 +53,14 @@ describe("Name Procedures", async () => {
       ]
     });
 
-    console.log(result)
-  })
+    assert.equal(result.names[0].name, 'Albus');
+    assert.equal(result.names[0].type, 'given');
+    assert.equal(result.names[0].primary, true);
+    assert.equal(result.names[1].primary, false);
+    assert.equal(result.names[4].type, 'surname');
+    assert.equal(result.names[4].primary, true);
+    assert.equal(result.fullText, 'Albus Percival Wulfric Brian Dumbledore')
+  });
 
   end();
 })
